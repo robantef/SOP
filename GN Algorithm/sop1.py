@@ -27,4 +27,5 @@ plt.title('Figure 1.1: Computational Complexity and Execution Time Scaling', fon
 plt.grid(True, linestyle='--', alpha=0.7)
 plt.legend(fontsize=12)
 plt.tight_layout()
+plt.savefig('figure_1_1_complexity.png', dpi=150, bbox_inches='tight')
 plt.show()
