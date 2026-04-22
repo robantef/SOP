@@ -127,7 +127,7 @@ G_ring, clique_groups = build_ring_of_cliques(NUM_CLIQUES, CLIQUE_SIZE)
 # Ground-truth partition: every clique is its own community
 ground_truth = [set(g) for g in clique_groups]
 
-# Louvain partition (fixed seed for reproducibility of this demo)
+# Louvain partition
 louvain_partition = nx.community.louvain_communities(G_ring, seed=42)
 
 print(f"\n[Part A]  Ring-of-Cliques  |  {NUM_CLIQUES} cliques × {CLIQUE_SIZE} nodes each")
