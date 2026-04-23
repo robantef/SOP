@@ -20,7 +20,7 @@ def build_sample_graph() -> nx.Graph:
 	]
 
 	graph.add_nodes_from(nodes)
-	graph.add_edges_from(edges)
+	graph.add_weighted_edges_from(edges)
 	return graph
 
 
@@ -62,7 +62,7 @@ def _one_level_trace(graph: nx.Graph, m: float, partition, resolution: float, rn
 	inner_partition = [{u} for u in graph.nodes()]
 
 	def _display_com(com_id: int) -> int:
-		# Internal community ids are 0-based; show 1-based labels in trace output.
+		# show 1-based labels in output.
 		return com_id + 1
 
 	degrees = dict(graph.degree(weight="weight"))
@@ -98,7 +98,7 @@ def _one_level_trace(graph: nx.Graph, m: float, partition, resolution: float, rn
 			display_weights = {_display_com(com): wt for com, wt in sorted(weights2com.items())}
 			print(f"    Node {u}: current community {_display_com(current_com)}")
 			print(f"      Neighbor-community edge weights: {display_weights}")
-			print(f"      remove_cost = {remove_cost:.6f}")
+			# print(f"      remove_cost = {remove_cost:.6f}")
 
 			for nbr_com, wt in sorted(weights2com.items()):
 				gain = remove_cost + wt / m - resolution * (stot[nbr_com] * degree) / (2 * m * m)
@@ -151,7 +151,7 @@ def traced_louvain_partitions(graph: nx.Graph, resolution: float = 1.0, threshol
 	mod = nx.community.modularity(graph, partition, resolution=resolution, weight="weight")
 	working_graph = graph.__class__()
 	working_graph.add_nodes_from(graph)
-	working_graph.add_edges_from(graph.edges(data="weight", default=1))
+	working_graph.add_weighted_edges_from(graph.edges(data="weight", default=1))
 	m = working_graph.size(weight="weight")
 
 	level = 1
