@@ -14,3 +14,6 @@ communities = nx.community.louvain_communities(G)
 print(f"Found {len(communities)} Louvain communities:")
 for i, c in enumerate(communities, 1):
     print(f"Community {i}: size={len(c)}")
+
+
+# Louvain Commuunities: https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.community.louvain.louvain_communities.html

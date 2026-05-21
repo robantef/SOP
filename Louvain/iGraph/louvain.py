@@ -21,7 +21,6 @@ def load_ctown_as_igraph(inp_path: str) -> ig.Graph:
 
 	# Convert to a simple undirected NetworkX graph first, then map to igraph.
 	nx_graph = nx.Graph(wn.to_graph())
-
 	node_names = list(nx_graph.nodes())
 	node_to_idx = {name: idx for idx, name in enumerate(node_names)}
 	edges = [(node_to_idx[u], node_to_idx[v]) for u, v in nx_graph.edges()]

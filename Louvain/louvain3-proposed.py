@@ -59,9 +59,41 @@ def _gen_graph(graph: nx.Graph, partition):
 	return induced
 
 
+def delta_q_scaled_move(
+	degree: float,
+	total_source: float,
+	total_target: float,
+	source_size: int,
+	target_size: int,
+	kin_source: float,
+	kin_target: float,
+	m: float,
+	r: float,
+	num_vertices: int,
+) -> float:
+	"""Compute the r-scaled Louvain move gain between two communities.
+
+	This follows the formula:
+	ΔQ = 1 / (2m + r|V|) * [
+	    2(k_i + r) / (2m + r|V|) * (
+	        tot_source - tot_target + r(|source| - |target|) - (k_i + r)
+	    ) - 2(kin_source - kin_target)
+	]
+	"""
+	denominator = 2 * m + r * num_vertices
+	if denominator == 0:
+		raise ValueError("The denominator 2m + r|V| must be non-zero.")
+
+	inner_term = total_source - total_target + r * (source_size - target_size) - (degree + r)
+	scaled_balance = (2 * (degree + r) / denominator) * inner_term
+	edge_balance = 2 * (kin_source - kin_target)
+	return (scaled_balance - edge_balance) / denominator
+
+
 def _one_level_trace(graph: nx.Graph, m: float, partition, resolution: float, rng: random.Random, node_order=None):
 	node2com = {u: i for i, u in enumerate(graph.nodes())}
 	inner_partition = [{u} for u in graph.nodes()]
+	r = 0.5  # scaling factor r set to 0.5
 
 	def _display_com(com_id: int) -> int:
 		# show 1-based labels in output.
@@ -93,25 +125,37 @@ def _one_level_trace(graph: nx.Graph, m: float, partition, resolution: float, rn
 			current_com = node2com[u]
 			weights2com = _neighbor_weights(nbrs[u], node2com)
 			degree = degrees[u]
-
-			stot[current_com] -= degree
-			remove_cost = -weights2com[current_com] / m + resolution * (stot[current_com] * degree) / (2 * m * m)
+			current_total = stot[current_com]
+			current_size = len(partition[current_com])
 
 			display_weights = {_display_com(com): wt for com, wt in sorted(weights2com.items())}
 			print(f"    Node {u}: current community {_display_com(current_com)}")
 			print(f"      Neighbor-community edge weights: {display_weights}")
-			# print(f"      remove_cost = {remove_cost:.6f}")
+			print(f"      r = {r:.2f}")
 
 			for nbr_com, wt in sorted(weights2com.items()):
-				gain = remove_cost + wt / m - resolution * (stot[nbr_com] * degree) / (2 * m * m)
+				target_total = stot[nbr_com]
+				target_size = len(partition[nbr_com])
+				gain = delta_q_scaled_move(
+					degree=degree,
+					total_source=current_total,
+					total_target=target_total,
+					source_size=current_size,
+					target_size=target_size,
+					kin_source=weights2com[current_com],
+					kin_target=wt,
+					m=m,
+					r=r,
+					num_vertices=graph.number_of_nodes(),
+				)
 				print(f"      Try community {_display_com(nbr_com)}: gain = {gain:.6f}")
 				if gain > best_mod:
 					best_mod = gain
 					best_com = nbr_com
 
-			stot[best_com] += degree
-
 			if best_com != current_com:
+				stot[current_com] -= degree
+				stot[best_com] += degree
 				print(
 					f"      Move node {u}: "
 					f"{_display_com(current_com)} -> {_display_com(best_com)} "

@@ -71,7 +71,7 @@ def save_before_after_figure(
 		colors = []
 		for n in g.nodes():
 			if n == bridge_node and n in main_comm:
-				colors.append("#e15759")  # red: bridge in main community
+				colors.append("#4e79a7")  # blue: bridge in main community
 			elif n in main_comm:
 				colors.append("#4e79a7")  # blue: main community
 			elif n in neighbor_comm:
